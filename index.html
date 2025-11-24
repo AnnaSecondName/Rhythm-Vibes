@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ритм-игра со стрелочками</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #e94560;
+            text-shadow: 0 0 10px rgba(233, 69, 96, 0.5);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            color: #8de2ff;
+        }
+        
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .score, .combo, .accuracy, .speed {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .score {
+            color: #4cc9f0;
+        }
+        
+        .combo {
+            color: #f72585;
+        }
+        
+        .accuracy {
+            color: #4ade80;
+        }
+        
+        .speed {
+            color: #ff9e00;
+        }
+        
+        .game-area {
+            position: relative;
+            height: 500px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        .target-line {
+            position: absolute;
+            bottom: 100px;
+            width: 100%;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.7);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+        
+        .arrow {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            font-size: 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            transition: transform 0.1s;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .arrow.up {
+            background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+            left: 20%;
+        }
+        
+        .arrow.down {
+            background: linear-gradient(135deg, #4ecdc4, #88d9e6);
+            left: 40%;
+        }
+        
+        .arrow.left {
+            background: linear-gradient(135deg, #ffe66d, #fff599);
+            left: 60%;
+        }
+        
+        .arrow.right {
+            background: linear-gradient(135deg, #9b5de5, #c77dff);
+            left: 80%;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .control-btn {
+            width: 80px;
+            height: 80px;
+            font-size: 2.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+        
+        .control-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .control-btn.up.active {
+            background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+            box-shadow: 0 0 15px rgba(255, 107, 107, 0.7);
+        }
+        
+        .control-btn.down.active {
+            background: linear-gradient(135deg, #4ecdc4, #88d9e6);
+            box-shadow: 0 0 15px rgba(78, 205, 196, 0.7);
+        }
+        
+        .control-btn.left.active {
+            background: linear-gradient(135deg, #ffe66d, #fff599);
+            box-shadow: 0 0 15px rgba(255, 230, 109, 0.7);
+        }
+        
+        .control-btn.right.active {
+            background: linear-gradient(135deg, #9b5de5, #c77dff);
+            box-shadow: 0 0 15px rgba(155, 93, 229, 0.7);
+        }
+        
+        .game-controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            font-size: 1.2rem;
+            background: linear-gradient(135deg, #e94560, #ff6b9c);
+            border: none;
+            border-radius: 50px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(233, 69, 96, 0.4);
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(233, 69, 96, 0.6);
+        }
+        
+        .btn:active {
+            transform: translateY(1px);
+        }
+        
+        .btn.start {
+            background: linear-gradient(135deg, #4cc9f0, #4361ee);
+            box-shadow: 0 4px 15px rgba(76, 201, 240, 0.4);
+        }
+        
+        .btn.start:hover {
+            box-shadow: 0 6px 20px rgba(76, 201, 240, 0.6);
+        }
+        
+        .feedback {
+            position: absolute;
+            font-size: 2rem;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .perfect {
+            color: #4ade80;
+        }
+        
+        .good {
+            color: #4cc9f0;
+        }
+        
+        .miss {
+            color: #f72585;
+        }
+        
+        .instructions {
+            margin-top: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: left;
+        }
+        
+        .instructions h2 {
+            color: #8de2ff;
+            margin-bottom: 10px;
+        }
+        
+        .instructions p {
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+        
+        .speed-indicator {
+            height: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        
+        .speed-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #4cc9f0, #f72585);
+            width: 0%;
+            transition: width 0.5s;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .pulse {
+            animation: pulse 0.5s ease-in-out;
+        }
+        
+        .level-up {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3rem;
+            font-weight: bold;
+            color: #ff9e00;
+            text-shadow: 0 0 10px rgba(255, 158, 0, 0.7);
+            opacity: 0;
+            transition: opacity 0.5s;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Ритм-игра со стрелочками</h1>
+        <p class="subtitle">Скорость увеличивается с ростом счета!</p>
+        
+        <div class="game-info">
+            <div class="score">Счёт: <span id="score">0</span></div>
+            <div class="combo">Комбо: <span id="combo">0</span>x</div>
+            <div class="accuracy">Точность: <span id="accuracy">100%</span></div>
+            <div class="speed">Скорость: <span id="speed">1</span>x</div>
+        </div>
+        
+        <div class="speed-indicator">
+            <div class="speed-bar" id="speedBar"></div>
+        </div>
+        
+        <div class="game-area" id="gameArea">
+            <div class="target-line"></div>
+            <div class="level-up" id="levelUp">УРОВЕНЬ ПОВЫШЕН!</div>
+            <!-- Стрелки будут добавляться динамически -->
+        </div>
+        
+        <div class="controls">
+            <button class="control-btn up" data-direction="up">↑</button>
+            <button class="control-btn down" data-direction="down">↓</button>
+            <button class="control-btn left" data-direction="left">←</button>
+            <button class="control-btn right" data-direction="right">→</button>
+        </div>
+        
+        <div class="game-controls">
+            <button class="btn start" id="startBtn">Начать игру</button>
+            <button class="btn" id="resetBtn">Сброс</button>
+        </div>
+        
+        <div class="instructions">
+            <h2>Как играть:</h2>
+            <p>• Нажимайте стрелки на клавиатуре (↑, ↓, ←, →) или кнопки на экране, когда падающие стрелки достигают линии.</p>
+            <p>• Чем точнее нажатие, тем больше очков вы получите.</p>
+            <p>• Собирайте комбо для умножения очков!</p>
+            <p>• Скорость падения стрелок увеличивается с ростом вашего счета.</p>
+            <p>• Идеальное нажатие: 100 очков, Хорошее: 50 очков, Позднее: 25 очков.</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Элементы DOM
+            const gameArea = document.getElementById('gameArea');
+            const scoreElement = document.getElementById('score');
+            const comboElement = document.getElementById('combo');
+            const accuracyElement = document.getElementById('accuracy');
+            const speedElement = document.getElementById('speed');
+            const speedBar = document.getElementById('speedBar');
+            const levelUpElement = document.getElementById('levelUp');
+            const startBtn = document.getElementById('startBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const controlBtns = document.querySelectorAll('.control-btn');
+            
+            // Переменные игры
+            let score = 0;
+            let combo = 0;
+            let totalNotes = 0;
+            let hitNotes = 0;
+            let gameActive = false;
+            let arrows = [];
+            let baseSpeed = 3;
+            let currentSpeed = baseSpeed;
+            let speedMultiplier = 1;
+            let spawnInterval;
+            let gameLoop;
+            
+            // Направления стрелок
+            const directions = ['up', 'down', 'left', 'right'];
+            
+            // Сопоставление клавиш с направлениями
+            const keyMap = {
+                'ArrowUp': 'up',
+                'ArrowDown': 'down',
+                'ArrowLeft': 'left',
+                'ArrowRight': 'right'
+            };
+            
+            // Инициализация игры
+            function initGame() {
+                score = 0;
+                combo = 0;
+                totalNotes = 0;
+                hitNotes = 0;
+                speedMultiplier = 1;
+                arrows = [];
+                updateUI();
+                
+                // Очистка игровой области
+                const existingArrows = document.querySelectorAll('.arrow');
+                existingArrows.forEach(arrow => arrow.remove());
+                
+                const existingFeedback = document.querySelectorAll('.feedback');
+                existingFeedback.forEach(feedback => feedback.remove());
+            }
+            
+            // Запуск игры
+            function startGame() {
+                if (gameActive) return;
+                
+                gameActive = true;
+                startBtn.textContent = 'Пауза';
+                
+                // Создание стрелок с интервалом
+                spawnInterval = setInterval(createArrow, 800);
+                
+                // Запуск игрового цикла
+                gameLoop = setInterval(updateGame, 16);
+            }
+            
+            // Пауза игры
+            function pauseGame() {
+                gameActive = false;
+                startBtn.textContent = 'Продолжить';
+                clearInterval(spawnInterval);
+                clearInterval(gameLoop);
+            }
+            
+            // Создание новой стрелки
+            function createArrow() {
+                if (!gameActive) return;
+                
+                const direction = directions[Math.floor(Math.random() * directions.length)];
+                const arrow = document.createElement('div');
+                arrow.className = `arrow ${direction}`;
+                arrow.dataset.direction = direction;
+                arrow.textContent = getArrowSymbol(direction);
+                arrow.style.top = '-80px';
+                
+                gameArea.appendChild(arrow);
+                
+                arrows.push({
+                    element: arrow,
+                    direction: direction,
+                    y: -80,
+                    hit: false
+                });
+                
+                totalNotes++;
+            }
+            
+            // Получение символа стрелки по направлению
+            function getArrowSymbol(direction) {
+                switch(direction) {
+                    case 'up': return '↑';
+                    case 'down': return '↓';
+                    case 'left': return '←';
+                    case 'right': return '→';
+                }
+            }
+            
+            // Обновление игрового состояния
+            function updateGame() {
+                if (!gameActive) return;
+                
+                // Обновление позиций стрелок
+                arrows.forEach((arrowObj, index) => {
+                    arrowObj.y += currentSpeed;
+                    arrowObj.element.style.top = `${arrowObj.y}px`;
+                    
+                    // Проверка, достигла ли стрелка линии
+                    const targetLineY = 400; // Y-координата целевой линии
+                    
+                    if (arrowObj.y > targetLineY + 50 && !arrowObj.hit) {
+                        // Пропуск стрелки
+                        missArrow(arrowObj);
+                        arrows.splice(index, 1);
+                    }
+                });
+            }
+            
+            // Обработка нажатия стрелки
+            function hitArrow(direction) {
+                if (!gameActive) return;
+                
+                // Поиск ближайшей стрелки нужного направления
+                let closestArrow = null;
+                let minDistance = Infinity;
+                
+                arrows.forEach(arrowObj => {
+                    if (arrowObj.direction === direction && !arrowObj.hit) {
+                        const distance = Math.abs(arrowObj.y - 400); // Расстояние до целевой линии
+                        if (distance < minDistance) {
+                            minDistance = distance;
+                            closestArrow = arrowObj;
+                        }
+                    }
+                });
+                
+                if (closestArrow) {
+                    // Определение точности нажатия
+                    let points = 0;
+                    let feedbackText = '';
+                    let feedbackClass = '';
+                    
+                    if (minDistance < 20) {
+                        points = 100;
+                        feedbackText = 'ИДЕАЛЬНО!';
+                        feedbackClass = 'perfect';
+                        combo++;
+                    } else if (minDistance < 40) {
+                        points = 50;
+                        feedbackText = 'ХОРОШО';
+                        feedbackClass = 'good';
+                        combo++;
+                    } else {
+                        points = 25;
+                        feedbackText = 'ПОЗДНО';
+                        feedbackClass = 'good';
+                        combo = 0;
+                    }
+                    
+                    // Обновление счета
+                    const oldScore = score;
+                    score += points * (combo > 1 ? combo : 1);
+                    hitNotes++;
+                    
+                    // Проверка увеличения скорости
+                    checkSpeedIncrease(oldScore);
+                    
+                    // Визуальная обратная связь
+                    showFeedback(feedbackText, feedbackClass, closestArrow.element.offsetLeft);
+                    
+                    // Удаление стрелки
+                    closestArrow.hit = true;
+                    closestArrow.element.remove();
+                    arrows = arrows.filter(a => a !== closestArrow);
+                    
+                    updateUI();
+                } else {
+                    // Неправильное нажатие
+                    combo = 0;
+                    showFeedback('ПРОПУСК!', 'miss', getRandomPosition());
+                    updateUI();
+                }
+            }
+            
+            // Проверка увеличения скорости
+            function checkSpeedIncrease(oldScore) {
+                const oldLevel = Math.floor(oldScore / 1000);
+                const newLevel = Math.floor(score / 1000);
+                
+                if (newLevel > oldLevel) {
+                    // Увеличение скорости
+                    speedMultiplier = 1 + newLevel * 0.2;
+                    currentSpeed = baseSpeed * speedMultiplier;
+                    
+                    // Показать сообщение о повышении уровня
+                    showLevelUp();
+                    
+                    // Увеличить частоту появления стрелок
+                    clearInterval(spawnInterval);
+                    spawnInterval = setInterval(createArrow, Math.max(300, 800 - newLevel * 50));
+                }
+            }
+            
+            // Показать сообщение о повышении уровня
+            function showLevelUp() {
+                levelUpElement.style.opacity = '1';
+                setTimeout(() => {
+                    levelUpElement.style.opacity = '0';
+                }, 1500);
+            }
+            
+            // Пропуск стрелки
+            function missArrow(arrowObj) {
+                combo = 0;
+                showFeedback('ПРОПУСК!', 'miss', arrowObj.element.offsetLeft);
+                arrowObj.element.remove();
+                updateUI();
+            }
+            
+            // Показать обратную связь
+            function showFeedback(text, className, x) {
+                const feedback = document.createElement('div');
+                feedback.className = `feedback ${className}`;
+                feedback.textContent = text;
+                feedback.style.left = `${x}px`;
+                feedback.style.top = '350px';
+                feedback.style.opacity = '1';
+                
+                gameArea.appendChild(feedback);
+                
+                // Анимация исчезновения
+                setTimeout(() => {
+                    feedback.style.opacity = '0';
+                    setTimeout(() => {
+                        feedback.remove();
+                    }, 300);
+                }, 500);
+            }
+            
+            // Получение случайной позиции для обратной связи
+            function getRandomPosition() {
+                return Math.random() * (gameArea.offsetWidth - 100) + 50;
+            }
+            
+            // Обновление интерфейса
+            function updateUI() {
+                scoreElement.textContent = score;
+                comboElement.textContent = combo;
+                
+                const accuracy = totalNotes > 0 ? Math.round((hitNotes / totalNotes) * 100) : 100;
+                accuracyElement.textContent = `${accuracy}%`;
+                
+                speedElement.textContent = speedMultiplier.toFixed(1);
+                
+                // Обновление индикатора скорости
+                const speedPercentage = Math.min(100, (speedMultiplier - 1) * 50);
+                speedBar.style.width = `${speedPercentage}%`;
+            }
+            
+            // Обработчики событий
+            startBtn.addEventListener('click', function() {
+                if (gameActive) {
+                    pauseGame();
+                } else {
+                    startGame();
+                }
+            });
+            
+            resetBtn.addEventListener('click', function() {
+                pauseGame();
+                initGame();
+                startBtn.textContent = 'Начать игру';
+            });
+            
+            // Обработчики нажатия кнопок управления
+            controlBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const direction = this.dataset.direction;
+                    hitArrow(direction);
+                    
+                    // Визуальная обратная связь для кнопки
+                    this.classList.add('active');
+                    setTimeout(() => {
+                        this.classList.remove('active');
+                    }, 100);
+                });
+            });
+            
+            // Обработчики нажатия клавиш
+            document.addEventListener('keydown', function(e) {
+                if (keyMap[e.key]) {
+                    hitArrow(keyMap[e.key]);
+                    
+                    // Визуальная обратная связь для кнопки
+                    const btn = document.querySelector(`.control-btn.${keyMap[e.key]}`);
+                    if (btn) {
+                        btn.classList.add('active');
+                        setTimeout(() => {
+                            btn.classList.remove('active');
+                        }, 100);
+                    }
+                }
+            });
+            
+            // Инициализация игры при загрузке
+            initGame();
+        });
+    </script>
+</body>
+</html>
